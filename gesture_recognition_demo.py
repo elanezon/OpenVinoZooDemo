@@ -38,9 +38,6 @@ from gesture_recognition_demo.visualizer import Visualizer
 sys.path.append(str(Path(__file__).resolve().parents[2] / 'common/python'))
 sys.path.append(str(Path(__file__).resolve().parents[2] / 'common/python/openvino/model_zoo'))
 
-import monitors
-from model_api.performance_metrics import PerformanceMetrics
-
 log.basicConfig(format='[ %(levelname)s ] %(message)s', level=log.DEBUG, stream=sys.stdout)
 
 DETECTOR_OUTPUT_SHAPE = -1, 5
@@ -129,10 +126,8 @@ def main():
     video_stream = VideoStream(args.input, ACTION_NET_INPUT_FPS, action_recognizer.input_length)
     video_stream.start()
 
-    metrics = PerformanceMetrics()
     visualizer = Visualizer(VISUALIZER_TRG_FPS)
     visualizer.register_window('Demo')
-    presenter = monitors.Presenter(args.utilization_monitors)
 
     samples_library = None
     if args.samples_dir is not None and os.path.exists(args.samples_dir):
@@ -209,8 +204,6 @@ def main():
             cv2.putText(frame, last_caption, (10, frame.shape[0] - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-        metrics.update(start_time, frame)
-
         frames_processed += 1
         if video_writer.isOpened() and (args.output_limit <= 0 or frames_processed <= args.output_limit):
             video_writer.write(frame)
@@ -246,9 +239,6 @@ def main():
     visualizer.release()
     video_stream.release()
 
-    metrics.log_total()
-    for rep in presenter.reportMeans():
-        log.info(rep)
 
 
 if __name__ == '__main__':
